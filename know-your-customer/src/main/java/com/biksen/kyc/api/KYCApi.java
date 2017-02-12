@@ -1,0 +1,168 @@
+package com.biksen.kyc.api;
+
+import com.biksen.kyc.contract.KYCContract;
+import com.biksen.kyc.contract.KYCState;
+import com.biksen.kyc.flow.KYCFlow;
+import com.biksen.kyc.model.KYC;
+import net.corda.core.contracts.ContractState;
+import net.corda.core.contracts.StateAndRef;
+import net.corda.core.crypto.Party;
+import net.corda.core.messaging.CordaRPCOps;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
+// This API is accessible from /api/kyc. All paths specified below are relative to it.
+@Path("kyc")
+public class KYCApi {
+    private final CordaRPCOps services;
+    private final String myLegalName;
+
+    public KYCApi(CordaRPCOps services) {
+        this.services = services;
+        this.myLegalName = services.nodeIdentity().getLegalIdentity().getName();
+    }
+
+    /*
+     * Returns the name of the node providing this end-point.
+     * GET Request::
+     * http://localhost:10007/api/kyc/me
+     */
+    @GET
+    @Path("me")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, String> whoami() { return singletonMap("me", myLegalName); }
+
+    /**
+     * Returns all parties registered with the [NetworkMapService]. The names can be used to look up identities by
+     * using the [IdentityService].
+     */
+    @GET
+    @Path("peers")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, List<String>> getPeers() {
+        final String NOTARY_NAME = "Controller";
+        return singletonMap(
+                "peers",
+                services.networkMapUpdates().getFirst()
+                        .stream()
+                        .map(node -> node.getLegalIdentity().getName())
+                        .filter(name -> !name.equals(myLegalName) && !name.equals(NOTARY_NAME))
+                        .collect(toList()));
+    }
+
+    /*
+     * Returns all kycs
+     * GET Request::
+     * http://localhost:10007/api/kyc/get-kycs
+     */
+    @GET
+    @Path("get-kycs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<StateAndRef<ContractState>> getKYCs() {
+        return services.vaultAndUpdates().getFirst();
+    }
+    
+    /*
+     * Single party
+     * http://localhost:10005/api/kyc/HDFC/create-kyc
+     * PUT Request::
+       {
+    		"kycId": 111, "userId": "biksen", "userName": "Jiya Sen", "kycDate": "2017-02-09", "kycValidDate": "2019-09-15", "docId": "A001"
+	   }
+    */
+   @PUT
+   @Path("{party1}/create-kyc")
+   public Response createPurchaseOrder(KYC kyc, @PathParam("party1") String partyName1) throws InterruptedException, ExecutionException {
+       final Party otherParty = services.partyFromName(partyName1);      
+       
+       System.out.println("Party1............"+otherParty);       
+
+       if (otherParty == null) {
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       
+       System.out.println("Request received............"+kyc);
+
+       final KYCState state = new KYCState(
+               kyc,
+               services.nodeIdentity().getLegalIdentity(),
+               otherParty,
+               new KYCContract());
+
+       // Initiate flow here. The line below blocks and waits for the flow to return.
+       final KYCFlow.KYCFlowResult result = services
+               .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty)
+               .getReturnValue()
+               .toBlocking()
+               .first();
+
+       final Response.Status status;
+       if (result instanceof KYCFlow.KYCFlowResult.Success) {
+           status = Response.Status.CREATED;
+       } else {
+           status = Response.Status.BAD_REQUEST;
+       }
+
+       return Response
+               .status(status)
+               .entity(result.toString())
+               .build();
+   }
+
+   /*
+    * Multiple parties
+    * http://localhost:10005/api/kyc/HDFC/SBI/create-kyc
+    * PUT Request::
+      {
+   		"kycId": 111, "userId": "biksen", "userName": "Jiya Sen", "kycDate": "2017-02-09", "kycValidDate": "2019-09-15", "docId": "A001"
+	   }
+   */
+    @PUT
+    @Path("{party1}/{party2}/create-kyc")
+    public Response createPurchaseOrder(KYC kyc, @PathParam("party1") String partyName1, @PathParam("party2") String partyName2) throws InterruptedException, ExecutionException {
+        final Party otherParty = services.partyFromName(partyName1);
+        final Party anotherParty = services.partyFromName(partyName2);
+        
+        System.out.println("Party1............"+otherParty);
+        System.out.println("Party2............"+anotherParty);
+
+        if (otherParty == null || anotherParty == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        
+        System.out.println("Request received............"+kyc);
+
+        final KYCState state = new KYCState(
+                kyc,
+                services.nodeIdentity().getLegalIdentity(),
+                otherParty,
+                new KYCContract());
+
+        // Initiate flow here. The line below blocks and waits for the flow to return.
+        final KYCFlow.KYCFlowResult result = services
+                .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty)
+                .getReturnValue()
+                .toBlocking()
+                .first();
+
+        final Response.Status status;
+        if (result instanceof KYCFlow.KYCFlowResult.Success) {
+            status = Response.Status.CREATED;
+        } else {
+            status = Response.Status.BAD_REQUEST;
+        }
+
+        return Response
+                .status(status)
+                .entity(result.toString())
+                .build();
+    }
+}
