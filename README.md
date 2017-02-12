@@ -13,6 +13,14 @@ comment line number 162 net.corda.node.services.statemachine.StateMachineManager
 
 run "build.gradle" under "corda-project"
 
+# corda dependent jars
+Core Corda platform dependent JARs: 
+1. client 
+2. corda 
+3. core 
+4. finance 
+5. node
+
 Publish Dependent Corda JARs into local .m2 repository 
 Goto C:\......\corda>gradlew.bat install
 
