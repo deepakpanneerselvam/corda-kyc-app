@@ -117,52 +117,5 @@ public class KYCApi {
                .build();
    }
 
-   /*
-    * Multiple parties
-    * http://localhost:10005/api/kyc/HDFC/SBI/create-kyc
-    * PUT Request::
-      {
-   		"kycId": 111, "userId": "biksen", "userName": "Jiya Sen", "kycDate": "2017-02-09", "kycValidDate": "2019-09-15", "docId": "A001"
-	   }
-   */
-    @PUT
-    @Path("{party1}/{party2}/create-kyc")
-    public Response createPurchaseOrder(KYC kyc, @PathParam("party1") String partyName1, @PathParam("party2") String partyName2) throws InterruptedException, ExecutionException {
-        final Party otherParty = services.partyFromName(partyName1);
-        final Party anotherParty = services.partyFromName(partyName2);
-        
-        System.out.println("Party1............"+otherParty);
-        System.out.println("Party2............"+anotherParty);
-
-        if (otherParty == null || anotherParty == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        
-        System.out.println("Request received............"+kyc);
-
-        final KYCState state = new KYCState(
-                kyc,
-                services.nodeIdentity().getLegalIdentity(),
-                otherParty,
-                new KYCContract());
-
-        // Initiate flow here. The line below blocks and waits for the flow to return.
-        final KYCFlow.KYCFlowResult result = services
-                .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty)
-                .getReturnValue()
-                .toBlocking()
-                .first();
-
-        final Response.Status status;
-        if (result instanceof KYCFlow.KYCFlowResult.Success) {
-            status = Response.Status.CREATED;
-        } else {
-            status = Response.Status.BAD_REQUEST;
-        }
-
-        return Response
-                .status(status)
-                .entity(result.toString())
-                .build();
-    }
+   
 }
