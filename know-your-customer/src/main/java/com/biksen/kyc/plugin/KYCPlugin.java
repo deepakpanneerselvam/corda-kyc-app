@@ -1,20 +1,29 @@
 package com.biksen.kyc.plugin;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.biksen.kyc.api.KYCApi;
-import com.biksen.kyc.contract.KYCContract;
-import com.biksen.kyc.contract.KYCState;
-import com.biksen.kyc.flow.KYCFlow;
-import com.biksen.kyc.model.KYC;
-import com.biksen.kyc.service.KYCService;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
 import net.corda.core.crypto.Party;
 import net.corda.core.flows.IllegalFlowLogicException;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.node.CordaPluginRegistry;
 import net.corda.core.node.PluginServiceHub;
+import net.corda.core.transactions.SignedTransaction;
 
-import java.util.*;
-import java.util.function.Function;
+import com.biksen.kyc.api.KYCApi;
+import com.biksen.kyc.contract.KYCContract;
+import com.biksen.kyc.contract.KYCState;
+import com.biksen.kyc.flow.AttachmentFlow;
+import com.biksen.kyc.flow.KYCFlow;
+import com.biksen.kyc.model.KYC;
+import com.biksen.kyc.service.KYCService;
+import com.esotericsoftware.kryo.Kryo;
 
 public class KYCPlugin extends CordaPluginRegistry {	
 	
@@ -36,12 +45,17 @@ public class KYCPlugin extends CordaPluginRegistry {
      * This map also acts as a white list. If a flow is invoked via the API and not registered correctly
      * here, then the flow state machine will _not_ invoke the flow. Instead, an exception will be raised.
      */
-    private final Map<String, Set<String>> requiredFlows = Collections.singletonMap(
+    /*private final Map<String, Set<String>> requiredFlows = Collections.singletonMap(
             KYCFlow.Initiator.class.getName(),
             new HashSet<>(Arrays.asList(
                     KYCState.class.getName(),
                     Party.class.getName()
-            )));
+            )));*/
+    
+    private final Map<String, Set<String>> requiredFlows = Collections.singletonMap(
+            AttachmentFlow.Initiator.class.getName(), 
+            new HashSet<>(Arrays.asList(SignedTransaction.class.getName(), Party.class.getName())));     
+   
 
     /**
      * A list of long lived services to be hosted within the node. Typically you would use these to register flow
@@ -77,6 +91,8 @@ public class KYCPlugin extends CordaPluginRegistry {
         kryo.register(KYCFlow.KYCFlowResult.Failure.class);
         kryo.register(IllegalArgumentException.class);
         kryo.register(IllegalFlowLogicException.class);
+        kryo.register(AttachmentFlow.AttachmentFlowResult.Success.class);
+        kryo.register(AttachmentFlow.AttachmentFlowResult.Failure.class);
         return true;
     }
 }

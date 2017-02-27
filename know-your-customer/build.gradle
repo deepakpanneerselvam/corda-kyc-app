@@ -80,6 +80,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['build']) {
         artemisPort 10002
         webPort 10003
         cordapps = []
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["StartFlow.com.biksen.kyc.flow.AttachmentFlow\$Initiator"]]]
     }
     node {
         name "ICICI"
@@ -88,7 +89,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['build']) {
         artemisPort 10004
         webPort 10005
         cordapps = []
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": []]]
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["StartFlow.com.biksen.kyc.flow.AttachmentFlow\$Initiator"]]]
     }
     node {
         name "HDFC"
@@ -97,7 +98,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['build']) {
         artemisPort 10006
         webPort 10007
         cordapps = []
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": []]]
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["StartFlow.com.biksen.kyc.flow.AttachmentFlow\$Initiator"]]]
     }
     node {
         name "SBI"
@@ -106,7 +107,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['build']) {
         artemisPort 10008
         webPort 10009
         cordapps = []
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": []]]
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["StartFlow.com.biksen.kyc.flow.AttachmentFlow\$Initiator"]]]
     }
 }
 
@@ -143,4 +144,16 @@ task runExampleClientRPC(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.example.client.ExampleClientRPC'
     args 'localhost:10004'
+}
+
+task runSender(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.biksen.kyc.attachment.AttachmentUtil'    
+    args 'SENDER'
+}
+
+task runRecipient(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.biksen.kyc.attachment.AttachmentUtil'    
+    args 'RECIPIENT'
 }

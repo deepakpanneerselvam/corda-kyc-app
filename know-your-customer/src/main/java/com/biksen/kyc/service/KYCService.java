@@ -1,6 +1,8 @@
 package com.biksen.kyc.service;
 
+import com.biksen.kyc.flow.AttachmentFlow;
 import com.biksen.kyc.flow.KYCFlow;
+
 import kotlin.jvm.JvmClassMappingKt;
 import net.corda.core.node.PluginServiceHub;
 
@@ -19,6 +21,11 @@ public class KYCService {
         services.registerFlowInitiator(
                 JvmClassMappingKt.getKotlinClass(KYCFlow.Initiator.class),
                 KYCFlow.Acceptor::new
+        );
+        
+        services.registerFlowInitiator(
+                JvmClassMappingKt.getKotlinClass(AttachmentFlow.Initiator.class),
+                AttachmentFlow.Acceptor::new
         );
     }
 }
