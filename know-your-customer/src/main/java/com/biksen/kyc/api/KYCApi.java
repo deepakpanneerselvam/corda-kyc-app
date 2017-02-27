@@ -1,23 +1,30 @@
 package com.biksen.kyc.api;
 
-import com.biksen.kyc.contract.KYCContract;
-import com.biksen.kyc.contract.KYCState;
-import com.biksen.kyc.flow.KYCFlow;
-import com.biksen.kyc.model.KYC;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.crypto.Party;
 import net.corda.core.messaging.CordaRPCOps;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
+import com.biksen.kyc.contract.KYCContract;
+import com.biksen.kyc.contract.KYCState;
+import com.biksen.kyc.flow.KYCFlow;
+import com.biksen.kyc.model.KYC;
 
 // This API is accessible from /api/kyc. All paths specified below are relative to it.
 @Path("kyc")
@@ -57,7 +64,7 @@ public class KYCApi {
                         .filter(name -> !name.equals(myLegalName) && !name.equals(NOTARY_NAME))
                         .collect(toList()));
     }
-
+    
     /*
      * Returns all kycs
      * GET Request::
@@ -69,10 +76,38 @@ public class KYCApi {
     public List<StateAndRef<ContractState>> getKYCs() {
         return services.vaultAndUpdates().getFirst();
     }
+
+    /*
+     * Search matching kycs based on user id
+     * GET Request::
+     * http://localhost:10007/api/kyc/<user_id>/get-kycs-by-userid
+     */
+    @GET
+    @Path("{userId}/get-kycs-by-userid")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<StateAndRef<ContractState>> getKYCsByUserId(@PathParam("userId") String userId) {
+    	
+    	List<StateAndRef<ContractState>> returnRecords = new ArrayList<StateAndRef<ContractState>>();
+    	
+    	List<StateAndRef<ContractState>> allRecords = services.vaultAndUpdates().getFirst();
+    	
+    	for(int i=0; i<allRecords.size();i++){
+    		
+    		StateAndRef<ContractState> singleRecord = (StateAndRef<ContractState>) allRecords.get(i);
+    		
+    		KYCState state = (KYCState) singleRecord.getState().getData();
+    		
+    		if(state.getKYC().getUserId().equalsIgnoreCase(userId)){
+    			returnRecords.add(singleRecord);
+    		}
+    	}
+    	
+        return returnRecords;
+    }
     
     /*
      * Single party
-     * http://localhost:10005/api/kyc/HDFC/create-kyc
+     * http://localhost:10005/api/kyc/<HDFC>/create-kyc
      * PUT Request::
        {
     		"kycId": 111, "userId": "biksen", "userName": "Jiya Sen", "kycDate": "2017-02-09", "kycValidDate": "2019-09-15", "docId": "A001"
