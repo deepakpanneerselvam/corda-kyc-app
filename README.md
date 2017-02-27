@@ -46,6 +46,7 @@ $ git checkout -b biksen-cordapp-temp-branch tags/release-M7.0
 REST API:
 --------
 PUT::
+
 http://localhost:10005/api/example/NodeB/create-purchase-order
 
 10005 is for NodeA / 10007 is for NodeB
@@ -57,4 +58,29 @@ Request:
  }
 
 GET::
+
 http://localhost:10005/api/example/purchase-orders
+
+# run attachment functionality
+
+i) Open a command prompt and execute the following command to run all nodes:
+
+D:\git\corda-kyc-app\know-your-customer\build\nodes>runnodes.bat
+
+ii) Open a command prompt and execute the following command:
+
+D:\git\corda-kyc-app\know-your-customer>gradlew.bat runRecipient
+
+iii) Open another command prompt and execute the following command:
+
+D:\git\corda-kyc-app\know-your-customer>gradlew.bat runSender
+
+iv) Open the following folder to check the attached file:
+
+D:\git\corda-kyc-app\know-your-customer\build\nodes\ICICI\attachments
+
+D:\git\corda-kyc-app\know-your-customer\build\nodes\HDFC\attachments
+
+
+
+
