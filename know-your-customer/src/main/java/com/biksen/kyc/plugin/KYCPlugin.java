@@ -52,9 +52,21 @@ public class KYCPlugin extends CordaPluginRegistry {
                     Party.class.getName()
             )));*/
     
-    private final Map<String, Set<String>> requiredFlows = Collections.singletonMap(
+    /*private final Map<String, Set<String>> requiredFlows = Collections.singletonMap(
             AttachmentFlow.Initiator.class.getName(), 
-            new HashSet<>(Arrays.asList(SignedTransaction.class.getName(), Party.class.getName())));     
+            new HashSet<>(Arrays.asList(SignedTransaction.class.getName(), Party.class.getName())));*/
+	
+   //Putting the above two flows into a single map
+    Map<String, Set<String>> requiredFlows = new HashMap<String, Set<String>>();
+   //instance block
+    {
+    	requiredFlows.put(KYCFlow.Initiator.class.getName(), new HashSet<>(Arrays.asList(
+                KYCState.class.getName(),
+                Party.class.getName()
+        )));
+    	requiredFlows.put(AttachmentFlow.Initiator.class.getName(), new HashSet<>(Arrays.asList(SignedTransaction.class.getName(), Party.class.getName())));
+    	
+    }
    
 
     /**
