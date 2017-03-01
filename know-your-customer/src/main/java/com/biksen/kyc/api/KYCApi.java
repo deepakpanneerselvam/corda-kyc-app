@@ -4,6 +4,8 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -85,9 +87,9 @@ public class KYCApi {
     @GET
     @Path("{userId}/get-kycs-by-userid")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<StateAndRef<ContractState>> getKYCsByUserId(@PathParam("userId") String userId) {
+    public List<KYC> getKYCsByUserId(@PathParam("userId") String userId) {
     	
-    	List<StateAndRef<ContractState>> returnRecords = new ArrayList<StateAndRef<ContractState>>();
+    	List<KYC> returnRecords = new ArrayList<KYC>();
     	
     	List<StateAndRef<ContractState>> allRecords = services.vaultAndUpdates().getFirst();
     	
@@ -98,9 +100,14 @@ public class KYCApi {
     		KYCState state = (KYCState) singleRecord.getState().getData();
     		
     		if(state.getKYC().getUserId().equalsIgnoreCase(userId)){
-    			returnRecords.add(singleRecord);
+    			returnRecords.add(state.getKYC());
     		}
     	}
+    	// return only one record based on kycDate which is created last
+    	KYC lastKYC = Collections.max(returnRecords, Comparator.comparing(KYC::getKycDate));
+    	
+    	returnRecords.clear();
+    	returnRecords.add(lastKYC);
     	
         return returnRecords;
     }
