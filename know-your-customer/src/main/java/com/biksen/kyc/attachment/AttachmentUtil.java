@@ -34,6 +34,7 @@ public class AttachmentUtil {
 			final HostAndPort nodeAddress = HostAndPort.fromString("localhost:10006");
 			System.out.println("Connecting to the recipient node "+ nodeAddress);
 			final CordaRPCClient client = new CordaRPCClient(nodeAddress, ConfigUtilities.configureTestSSL());
+			// Now we can connect to the node itself using a valid RPC login. We login using the already configured user.
 			client.start("user1", "test");
 	                final CordaRPCOps proxy = client.proxy();
 	                recipient(proxy);
@@ -65,7 +66,7 @@ public class AttachmentUtil {
 		InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
 		// To add attachments the file must first be uploaded to the node, which returns a unique ID that can be added using TransactionBuilder.addAttachment()
 		SecureHash id = rpc.uploadAttachment(in);
-		
+		// Now generate a transaction - building mutable transaction (TransactionBuilder) first to manupulate, adding etc.
 		Class memberClasses[] = TransactionType.General.class.getDeclaredClasses();     	
     	        Class classDefinition = memberClasses[0];    	
     	        TransactionBuilder builder = null;
@@ -82,7 +83,7 @@ public class AttachmentUtil {
 		//Attaching id returned by rpc.uploadAttachment() call
     	        builder.addAttachment(id);
     	        builder.signWith(net.corda.testing.CoreTestUtils.getALICE_KEY());
-    	
+    	        // convert the mutable transaction to immutable transaction (SignedTransaction)
     	        SignedTransaction stx = builder.toSignedTransaction(true);
     	
     	        System.out.println("Sending attachment......"+stx.getId());     	
