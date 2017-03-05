@@ -39,14 +39,12 @@ public class AttachmentFlow {
 
 			try {
 				
-				final Set<Party> participants = ImmutableSet.of(counterParty);
-		        
-		        subFlow(new BroadcastTransactionFlow(signedTx, participants),false);
+			     final Set<Party> participants = ImmutableSet.of(counterParty);		        
+		             subFlow(new BroadcastTransactionFlow(signedTx, participants),false);
 
-				return new AttachmentFlowResult.Success("Transaction successfull at Initiator side.....");
+		             return new AttachmentFlowResult.Success("Transaction successfull at Initiator side.....");
 			} catch (Exception ex) {
-
-				return new AttachmentFlowResult.Failure("Transaction failed at Initiator side....."+ex.getMessage());
+			     return new AttachmentFlowResult.Failure("Transaction failed at Initiator side....."+ex.getMessage());
 			}
 		}
     }
@@ -64,14 +62,13 @@ public class AttachmentFlow {
         public AttachmentFlowResult call() {
             try {
             	
-            	final SignedTransaction ntx = this.sendAndReceive(SignedTransaction.class, otherParty, otherParty.getOwningKey())
-                        .unwrap(data -> data);
+            	  final SignedTransaction ntx = this.sendAndReceive(SignedTransaction.class, otherParty, otherParty.getOwningKey())
+                          .unwrap(data -> data);                
+                  ntx.verifySignatures();
                 
-                ntx.verifySignatures();
-                
-            	return new AttachmentFlowResult.Success("Transaction successfull at Acceptor side..........");
+            	  return new AttachmentFlowResult.Success("Transaction successfull at Acceptor side..........");
             } catch (Exception ex) {
-            	return new AttachmentFlowResult.Failure("Transaction failed at Acceptor side....."+ex.getMessage());
+            	  return new AttachmentFlowResult.Failure("Transaction failed at Acceptor side....."+ex.getMessage());
             }
         }
     }
