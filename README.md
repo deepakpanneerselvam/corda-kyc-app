@@ -61,7 +61,7 @@ GET::
 
 http://localhost:10005/api/example/purchase-orders
 
-# run attachment functionality
+# Run attachment functionality through command line
 
 i) Open a command prompt and execute the following command to run all nodes:
 
@@ -81,6 +81,17 @@ D:\git\corda-kyc-app\know-your-customer\build\nodes\ICICI\attachments
 
 D:\git\corda-kyc-app\know-your-customer\build\nodes\HDFC\attachments
 
+# Run attachment functionality through REST API
 
+PUT:: http://localhost:10005/api/kyc/HDFC/create-kyc-with-attachment
+
+{
+     "kycId": 123,
+     "userId": "jiyasen",
+     "userName": "Bikash Sen",
+     "kycDate": "2017-06-09",
+     "kycValidDate": "2019-09-15",
+     "docId": "A002"
+ }
 
 
