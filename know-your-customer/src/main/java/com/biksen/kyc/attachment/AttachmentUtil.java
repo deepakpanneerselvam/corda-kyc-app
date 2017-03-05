@@ -59,10 +59,11 @@ public class AttachmentUtil {
 	}
 
 	public static final void sender(CordaRPCOps rpc) throws IOException{
+		// Get the identity key of the other side (the recipient).
 		Party otherSide = rpc.partyFromName("HDFC");
-
+                // Make sure we have the file in storage under src/main/resources root
 		InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
-		//To add attachments the file must first be uploaded to the node, which returns a unique ID that can be added using TransactionBuilder.addAttachment()
+		// To add attachments the file must first be uploaded to the node, which returns a unique ID that can be added using TransactionBuilder.addAttachment()
 		SecureHash id = rpc.uploadAttachment(in);
 		
 		Class memberClasses[] = TransactionType.General.class.getDeclaredClasses();     	
