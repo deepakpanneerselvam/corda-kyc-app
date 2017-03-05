@@ -61,7 +61,8 @@ public class AttachmentUtil {
 	public static final void sender(CordaRPCOps rpc) throws IOException{
 		Party otherSide = rpc.partyFromName("HDFC");
 
-		InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");				
+		InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
+		//To add attachments the file must first be uploaded to the node, which returns a unique ID that can be added using TransactionBuilder.addAttachment()
 		SecureHash id = rpc.uploadAttachment(in);
 		
 		Class memberClasses[] = TransactionType.General.class.getDeclaredClasses();     	
@@ -77,6 +78,7 @@ public class AttachmentUtil {
     	        if(!rpc.attachmentExists(PROSPECTUS_HASH)){
     		      builder.addAttachment(PROSPECTUS_HASH);    	
     	        }
+		//Attaching id returned by rpc.uploadAttachment() call
     	        builder.addAttachment(id);
     	        builder.signWith(net.corda.testing.CoreTestUtils.getALICE_KEY());
     	
