@@ -35,8 +35,8 @@ public class AttachmentUtil {
 			System.out.println("Connecting to the recipient node "+ nodeAddress);
 			final CordaRPCClient client = new CordaRPCClient(nodeAddress, ConfigUtilities.configureTestSSL());
 			client.start("user1", "test");
-	        final CordaRPCOps proxy = client.proxy();
-	        recipient(proxy);
+	                final CordaRPCOps proxy = client.proxy();
+	                recipient(proxy);
 		}
 		
 		if(args[0].equalsIgnoreCase("SENDER"))
@@ -45,9 +45,8 @@ public class AttachmentUtil {
 			System.out.println("Connecting to sender node "+ nodeAddress);
 			final CordaRPCClient client = new CordaRPCClient(nodeAddress, ConfigUtilities.configureTestSSL());
 			client.start("user1", "test");
-	        final CordaRPCOps proxy = client.proxy();
-			sender(proxy);
-	        
+	                final CordaRPCOps proxy = client.proxy();
+			sender(proxy);  
 	        
 		}
 		
@@ -66,56 +65,52 @@ public class AttachmentUtil {
 		SecureHash id = rpc.uploadAttachment(in);
 		
 		Class memberClasses[] = TransactionType.General.class.getDeclaredClasses();     	
-    	Class classDefinition = memberClasses[0];    	
-    	TransactionBuilder builder = null;
-    	try{
-    		Constructor cons = classDefinition.getConstructor(Party.class);    		
-    		Object obj = cons.newInstance(otherSide);    		
-    		builder = (TransactionBuilder) obj;   		
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	} 
-    	if(!rpc.attachmentExists(PROSPECTUS_HASH)){
-    		builder.addAttachment(PROSPECTUS_HASH);    	
-    	}
-    	builder.addAttachment(id);
-    	builder.signWith(net.corda.testing.CoreTestUtils.getALICE_KEY());
+    	        Class classDefinition = memberClasses[0];    	
+    	        TransactionBuilder builder = null;
+    	        try{
+    		     Constructor cons = classDefinition.getConstructor(Party.class);    		
+    		     Object obj = cons.newInstance(otherSide);    		
+    		     builder = (TransactionBuilder) obj;   		
+    	        }catch(Exception e){
+    		     e.printStackTrace();
+    	        } 
+    	        if(!rpc.attachmentExists(PROSPECTUS_HASH)){
+    		      builder.addAttachment(PROSPECTUS_HASH);    	
+    	        }
+    	        builder.addAttachment(id);
+    	        builder.signWith(net.corda.testing.CoreTestUtils.getALICE_KEY());
     	
-    	SignedTransaction stx = builder.toSignedTransaction(true);
+    	        SignedTransaction stx = builder.toSignedTransaction(true);
     	
-    	System.out.println("Sending attachment......"+stx.getId());    	
+    	        System.out.println("Sending attachment......"+stx.getId());     	
     	
-    	
-    	final Set<Party> participants = ImmutableSet.of(otherSide);        
-    	final AttachmentFlow.AttachmentFlowResult result = rpc.startFlowDynamic(AttachmentFlow.Initiator.class, stx, otherSide).getReturnValue().toBlocking().first();  	
-    	System.out.println("Got result in sender :::: "+result.toString());
-    	
+    	        final Set<Party> participants = ImmutableSet.of(otherSide);        
+    	        final AttachmentFlow.AttachmentFlowResult result = rpc.startFlowDynamic(AttachmentFlow.Initiator.class, stx, otherSide).getReturnValue().toBlocking().first();  	
+    	        System.out.println("Got result in sender :::: "+result.toString());    	
 
 	}
 
 	public static final void recipient(CordaRPCOps rpc) {		
 		
-        System.out.println("Waiting to receive transaction ...");
-        SignedTransaction stx = (SignedTransaction)((Observable)rpc.verifiedTransactions().getSecond()).toBlocking().first();
-        System.out.println("Received transaction....");
-        WireTransaction wtx = stx.getTx();
-        List collection = (List)wtx.getAttachments();
-        System.out.println("Collection is = "+collection.size());
-        if(!collection.isEmpty())
-        {
-            
-            boolean flag = rpc.attachmentExists((SecureHash)PROSPECTUS_HASH);
-            if(!flag)
-            {
-                String s2 = "Failed requirement.";                
-            }
-            String s = (new StringBuilder()).append("File received - we're happy!").append("\n").append("\n").append("Final transaction is:").append("\n").append("\n").append(Emoji.INSTANCE.renderIfSupported(wtx)).toString();
-            System.out.println(s);
-        } else
-        {
-            String s1 = (new StringBuilder()).append("Error: no attachments found in ").append(wtx.getId()).toString();
-            System.out.println(s1);
-        }
+                System.out.println("Waiting to receive transaction ...");
+                SignedTransaction stx = (SignedTransaction)((Observable)rpc.verifiedTransactions().getSecond()).toBlocking().first();
+                System.out.println("Received transaction....");
+                WireTransaction wtx = stx.getTx();
+                List collection = (List)wtx.getAttachments();
+                System.out.println("Collection is = "+collection.size());
+                if(!collection.isEmpty())
+                {            
+                      boolean flag = rpc.attachmentExists((SecureHash)PROSPECTUS_HASH);
+                      if(!flag)
+                      {
+                          String s2 = "Failed requirement.";                
+                      }
+                      String s = (new StringBuilder()).append("File received - we're happy!").append("\n").append("\n").append("Final transaction is:").append("\n").append("\n").append(Emoji.INSTANCE.renderIfSupported(wtx)).toString();
+                      System.out.println(s);
+                 } else{
+                      String s1 = (new StringBuilder()).append("Error: no attachments found in ").append(wtx.getId()).toString();
+                      System.out.println(s1);
+                 }
 	}
 
 }
