@@ -1,32 +1,44 @@
 package com.biksen.kyc.flow;
 
-import co.paralleluniverse.fibers.Suspendable;
-import com.biksen.kyc.contract.KYCState;
-import com.biksen.kyc.model.KYC;
+import static kotlin.collections.CollectionsKt.single;
+
+import java.lang.reflect.Constructor;
+import java.security.KeyPair;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Set;
+
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.DealState;
 import net.corda.core.contracts.TransactionState;
+import net.corda.core.contracts.TransactionType;
 import net.corda.core.crypto.CompositeKey;
 import net.corda.core.crypto.CryptoUtilities;
 import net.corda.core.crypto.DigitalSignature;
 import net.corda.core.crypto.Party;
+import net.corda.core.crypto.SecureHash;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.transactions.WireTransaction;
 import net.corda.core.utilities.ProgressTracker;
+import net.corda.flows.BroadcastTransactionFlow;
 import net.corda.flows.NotaryFlow;
+import co.paralleluniverse.fibers.Suspendable;
 
-import java.security.KeyPair;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Collections;
-
-import static kotlin.collections.CollectionsKt.single;
+import com.biksen.kyc.contract.KYCState;
+import com.google.common.collect.ImmutableSet;
 
 
 public class KYCFlow {
     public static class Initiator extends FlowLogic<KYCFlowResult> {
+    	
+    	private static final net.corda.core.crypto.SecureHash.SHA256 PROSPECTUS_HASH;
+
+    	static {
+    		PROSPECTUS_HASH = SecureHash.Companion.parse("decd098666b9657314870e192ced0c3519c2c9d395507a238338f8d003929de9");
+    	}
 
         private final KYCState kycState;
         private final Party otherParty;
@@ -77,6 +89,29 @@ public class KYCFlow {
 
                 // Stage 1.
                 progressTracker.setCurrentStep(CONSTRUCTING_OFFER);
+                
+                // Add attachment logic - START               
+                
+                Class memberClasses[] = TransactionType.General.class.getDeclaredClasses();     	
+            	Class classDefinition = memberClasses[0];    	
+            	TransactionBuilder builder = null;
+            	try{
+            		Constructor cons = classDefinition.getConstructor(Party.class);    		
+            		Object obj = cons.newInstance(otherParty);    		
+            		builder = (TransactionBuilder) obj;   		
+            	}catch(Exception e){
+            		e.printStackTrace();
+            	}             	
+            	builder.addAttachment(PROSPECTUS_HASH);
+            	builder.signWith(net.corda.testing.CoreTestUtils.getALICE_KEY());            	
+            	SignedTransaction stx = builder.toSignedTransaction(true);
+            	
+            	System.out.println("Sending attachment......"+stx.getId());             	
+            	
+            	final Set<Party> participants = ImmutableSet.of(otherParty);		        
+		        subFlow(new BroadcastTransactionFlow(stx, participants),false);  	
+            	
+                // Add attachment logic - END
                 
                 final TransactionState offerMessage = new TransactionState<ContractState>(kycState, notary);
 

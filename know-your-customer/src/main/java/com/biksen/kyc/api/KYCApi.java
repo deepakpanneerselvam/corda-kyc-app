@@ -3,6 +3,7 @@ package com.biksen.kyc.api;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +22,7 @@ import javax.ws.rs.core.Response;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.crypto.Party;
+import net.corda.core.crypto.SecureHash;
 import net.corda.core.messaging.CordaRPCOps;
 
 import com.biksen.kyc.contract.KYCContract;
@@ -122,7 +124,7 @@ public class KYCApi {
     */
    @PUT
    @Path("{party1}/create-kyc")
-   public Response createPurchaseOrder(KYC kyc, @PathParam("party1") String partyName1) throws InterruptedException, ExecutionException {
+   public Response createKYC(KYC kyc, @PathParam("party1") String partyName1) throws InterruptedException, ExecutionException {
        final Party otherParty = services.partyFromName(partyName1);      
        
        System.out.println("Party1............"+otherParty);       
@@ -138,6 +140,64 @@ public class KYCApi {
                services.nodeIdentity().getLegalIdentity(),
                otherParty,
                new KYCContract());
+
+       // Initiate flow here. The line below blocks and waits for the flow to return.
+       final KYCFlow.KYCFlowResult result = services
+               .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty)
+               .getReturnValue()
+               .toBlocking()
+               .first();
+
+       final Response.Status status;
+       if (result instanceof KYCFlow.KYCFlowResult.Success) {
+           status = Response.Status.CREATED;
+       } else {
+           status = Response.Status.BAD_REQUEST;
+       }
+
+       return Response
+               .status(status)
+               .entity(result.toString())
+               .build();
+   }
+   
+   @PUT
+   @Path("{otherParty}/create-kyc-with-attachment")
+   public Response createKYCWithAttachment(KYC kyc, @PathParam("otherParty") String otherPartyName) throws InterruptedException, ExecutionException {
+       final Party otherParty = services.partyFromName(otherPartyName);      
+       
+       System.out.println("Party1............"+otherParty);       
+
+       if (otherParty == null) {
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       
+       System.out.println("Request received............"+kyc);
+
+       final KYCState state = new KYCState(
+               kyc,
+               services.nodeIdentity().getLegalIdentity(),
+               otherParty,
+               new KYCContract());
+       
+       // Add attachment - Added attachment logic into KYCFlow.java
+       /*
+        * The code within this comment block is to build the JAR file from base64 string
+        import java.util.Base64;
+
+		byte[] bytes = "Hello, World!".getBytes("UTF-8");
+		String encoded = Base64.getEncoder().encodeToString(bytes);
+		byte[] decoded = Base64.getDecoder().decode(encoded);
+		File file = new File("c:/newfile.pdf");;
+		FileOutputStream fop = new FileOutputStream(file);
+
+		fop.write(decoded);
+		fop.flush();
+		fop.close();
+        */
+       InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
+       SecureHash id =  services.uploadAttachment(in);
+       // End attachment
 
        // Initiate flow here. The line below blocks and waits for the flow to return.
        final KYCFlow.KYCFlowResult result = services
