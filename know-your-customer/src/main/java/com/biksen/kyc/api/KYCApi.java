@@ -195,7 +195,8 @@ public class KYCApi {
 		fop.flush();
 		fop.close();
         */
-       InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
+       InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classmate-1.3.0.jar");
+       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
        SecureHash id =  services.uploadAttachment(in);
        // End attachment
 

@@ -37,7 +37,10 @@ public class KYCFlow {
     	private static final net.corda.core.crypto.SecureHash.SHA256 PROSPECTUS_HASH;
 
     	static {
-    		PROSPECTUS_HASH = SecureHash.Companion.parse("decd098666b9657314870e192ced0c3519c2c9d395507a238338f8d003929de9");
+    		/** SHA-256 hash value of 'bank-of-london-cp.jar' file */
+    		//PROSPECTUS_HASH = SecureHash.Companion.parse("decd098666b9657314870e192ced0c3519c2c9d395507a238338f8d003929de9");
+    		/** SHA-256 hash value of 'classmate-1.3.0.jar' file */
+    		PROSPECTUS_HASH = SecureHash.Companion.parse("11F836B0F3EBA1544967317C052917C2987D78F0D1FB1E5A2BF93265174B9D77");
     	}
 
         private final KYCState kycState;
