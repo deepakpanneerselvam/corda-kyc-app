@@ -3,8 +3,11 @@ package com.biksen.kyc.api;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -180,27 +183,26 @@ public class KYCApi {
                otherParty,
                new KYCContract());
        
-       // Add attachment - Added attachment logic into KYCFlow.java
-       /*
-        * The code within this comment block is to build the JAR file from base64 string
-        import java.util.Base64;
+      /** Add attachment - Added attachment logic into KYCFlow.java */
+      //String path = Thread.currentThread().getContextClassLoader().getResource(".").getPath()+ "R-3083" + ".zip";     
+      
+      //System.out.println("Resource path........"+path);
+      /*try{
+    	   byte[] bytes = "Hello, World!".getBytes("UTF-8");
+    	   String encoded = Base64.getEncoder().encodeToString(bytes);
+    	   byte[] decoded = Base64.getDecoder().decode(encoded);   	       	   
+    	   FileOutputStream fop = new FileOutputStream(path);
 
-		byte[] bytes = "Hello, World!".getBytes("UTF-8");
-		String encoded = Base64.getEncoder().encodeToString(bytes);
-		byte[] decoded = Base64.getDecoder().decode(encoded);
-		File file = new File("c:/newfile.pdf");;
-		FileOutputStream fop = new FileOutputStream(file);
-
-		fop.write(decoded);
-		fop.flush();
-		fop.close();
-        */
+    	   fop.write(decoded);
+    	   fop.flush();
+    	   fop.close();
+       }catch(Exception e){} 
+       */     
+       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("R-3083.zip");
-       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classmate-1.3.0.jar");
-       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
-       SecureHash attachmentHashValue =  services.uploadAttachment(in);
        
-       // End attachment
+       SecureHash attachmentHashValue =  services.uploadAttachment(in);       
+       /** End attachment */
 
        // Initiate flow here. The line below blocks and waits for the flow to return.
        final KYCFlow.KYCFlowResult result = services

@@ -26,6 +26,8 @@ public class SHA256Util
 
         System.out.println("Hex format : " + sb.toString());
         
+        System.out.println(Thread.currentThread().getContextClassLoader().getResource(".").getPath()+"test.jar");
+        
         fis.close();
       
     }

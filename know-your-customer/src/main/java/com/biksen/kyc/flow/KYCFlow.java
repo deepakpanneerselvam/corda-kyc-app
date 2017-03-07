@@ -7,13 +7,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 
-import net.corda.core.contracts.Attachment;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.DealState;
 import net.corda.core.contracts.TransactionState;
@@ -30,6 +30,7 @@ import net.corda.core.transactions.WireTransaction;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.flows.BroadcastTransactionFlow;
 import net.corda.flows.NotaryFlow;
+import net.corda.node.services.persistence.NodeAttachmentService;
 import co.paralleluniverse.fibers.Suspendable;
 
 import com.biksen.kyc.contract.KYCState;
@@ -39,16 +40,7 @@ import com.google.common.collect.ImmutableSet;
 public class KYCFlow {
     public static class Initiator extends FlowLogic<KYCFlowResult> {
     	
-    	//private static final net.corda.core.crypto.SecureHash.SHA256 PROSPECTUS_HASH;
-
-    	static {
-    		/** SHA-256 hash value of 'bank-of-london-cp.jar' file under src/main/resources */
-    		//PROSPECTUS_HASH = SecureHash.Companion.parse("decd098666b9657314870e192ced0c3519c2c9d395507a238338f8d003929de9");
-    		/** SHA-256 hash value of 'classmate-1.3.0.jar' file src/main/resources */
-    		//PROSPECTUS_HASH = SecureHash.Companion.parse("11F836B0F3EBA1544967317C052917C2987D78F0D1FB1E5A2BF93265174B9D77");
-    		/** SHA-256 hash value of 'R-3083.zip' file src/main/resources */
-    		//PROSPECTUS_HASH = SecureHash.Companion.parse("8d88af2dbc7c224c912906815b3859cd8ec848b410d226c912cb12a2d2c20588");
-    	}
+    	
 
         private final KYCState kycState;
         private final Party otherParty;
@@ -126,20 +118,7 @@ public class KYCFlow {
             	final Set<Party> participants = ImmutableSet.of(otherParty);		        
 		        subFlow(new BroadcastTransactionFlow(stx, participants),false);  	
             	
-                /** Add attachment logic - END */
-		        
-		        /** Download attachment */
-		        /*if(!builder.attachments().isEmpty()){
-		        	System.out.println("Downloading attachment................");
-		        	Attachment attachment = getServiceHub().getStorageService().getAttachments().openAttachment(PROSPECTUS_HASH);
-		        	InputStream in = attachment.open();
-		        	byte[] buffer = new byte[in.available()];
-		        	in.read(buffer);
-		        	File file = new File("D:\\temp_backup\\sample.zip");
-		        	OutputStream outStream = new FileOutputStream(file);
-		        	outStream.write(buffer);
-		        }*/
-                /** End download attachment code */
+                /** Add attachment logic - END */	        
                 
                 final TransactionState offerMessage = new TransactionState<ContractState>(kycState, notary);
 
@@ -192,6 +171,17 @@ public class KYCFlow {
     }
 
     public static class Acceptor extends FlowLogic<KYCFlowResult> {
+    	
+    	private static final net.corda.core.crypto.SecureHash.SHA256 PROSPECTUS_HASH;
+
+    	static {
+    		/** SHA-256 hash value of 'bank-of-london-cp.jar' file under src/main/resources */
+    		//PROSPECTUS_HASH = SecureHash.Companion.parse("decd098666b9657314870e192ced0c3519c2c9d395507a238338f8d003929de9");
+    		/** SHA-256 hash value of 'classmate-1.3.0.jar' file src/main/resources */
+    		//PROSPECTUS_HASH = SecureHash.Companion.parse("11F836B0F3EBA1544967317C052917C2987D78F0D1FB1E5A2BF93265174B9D77");
+    		/** SHA-256 hash value of 'R-3083.zip' file src/main/resources */
+    		PROSPECTUS_HASH = SecureHash.Companion.parse("8d88af2dbc7c224c912906815b3859cd8ec848b410d226c912cb12a2d2c20588");
+    	}
 
         private final Party otherParty;
         private final ProgressTracker progressTracker = new ProgressTracker(
@@ -234,7 +224,7 @@ public class KYCFlow {
                 final TransactionState<DealState> message = this.receive(TransactionState.class, otherParty)
                         .unwrap(data -> (TransactionState<DealState>) data );
                 
-                System.out.println("Received data at receiver side............."+((KYCState)message.getData()).getKYC());
+                System.out.println("Received data at receiver side............."+((KYCState)message.getData()).getKYC());                
 
                 // Stage 4.
                 progressTracker.setCurrentStep(GENERATING_TRANSACTION);                
@@ -271,6 +261,22 @@ public class KYCFlow {
                 // Record the transaction.
                 progressTracker.setCurrentStep(RECORDING);
                 getServiceHub().recordTransactions(Collections.singletonList(ntx));
+                
+                
+                /** Download attachment */		       
+		        System.out.println("Downloading attachment................");
+		        /*Path attachmentPath = ((NodeAttachmentService)getServiceHub().getStorageService().getAttachments()).getStorePath();		        
+		        File f = attachmentPath.toFile();		        
+		        File[] fileList = f.listFiles();
+		        for(int i=0;i<fileList.length;i++){
+		        	System.out.println("File complete path with file name........"+fileList[i].getAbsolutePath());
+		        	
+		        }*/
+		        InputStream in = ((NodeAttachmentService)getServiceHub().getStorageService().getAttachments()).openAttachment(PROSPECTUS_HASH).open();		        
+		        
+		        /** End download attachment */
+                
+                
                 return new KYCFlowResult.Success(String.format("Transaction id %s committed to ledger.", ntx.getId()));
             } catch (Exception ex) {
                 return new KYCFlowResult.Failure(ex.getMessage());
