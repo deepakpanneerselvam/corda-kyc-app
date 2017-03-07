@@ -8,7 +8,7 @@ public class SHA256Util
     public static void main(String[] args)throws Exception
     {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        FileInputStream fis = new FileInputStream("D:\\bank-of-london-cp.jar");
+        FileInputStream fis = new FileInputStream("D:\\R-3083.zip");
 
         byte[] dataBytes = new byte[1024];
 
