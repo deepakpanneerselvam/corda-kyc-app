@@ -63,7 +63,8 @@ public class KYCPlugin extends CordaPluginRegistry {
     {
     	requiredFlows.put(KYCFlow.Initiator.class.getName(), new HashSet<>(Arrays.asList(
                 KYCState.class.getName(),
-                Party.class.getName()
+                Party.class.getName(),
+                net.corda.core.crypto.SecureHash.SHA256.class.getName()
         )));
     	requiredFlows.put(AttachmentFlow.Initiator.class.getName(), new HashSet<>(Arrays.asList(SignedTransaction.class.getName(), Party.class.getName())));
     	

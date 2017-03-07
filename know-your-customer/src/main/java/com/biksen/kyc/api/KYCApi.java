@@ -97,7 +97,7 @@ public class KYCApi {
     	
     	for(int i=0; i<allRecords.size();i++){
     		
-    		StateAndRef<ContractState> singleRecord = (StateAndRef<ContractState>) allRecords.get(i);
+    		StateAndRef<ContractState> singleRecord = (StateAndRef<ContractState>) allRecords.get(i);   		
     		
     		KYCState state = (KYCState) singleRecord.getState().getData();
     		
@@ -198,12 +198,13 @@ public class KYCApi {
        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("R-3083.zip");
        //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classmate-1.3.0.jar");
        //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("bank-of-london-cp.jar");
-       SecureHash id =  services.uploadAttachment(in);
+       SecureHash attachmentHashValue =  services.uploadAttachment(in);
+       
        // End attachment
 
        // Initiate flow here. The line below blocks and waits for the flow to return.
        final KYCFlow.KYCFlowResult result = services
-               .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty)
+               .startFlowDynamic(KYCFlow.Initiator.class, state, otherParty, attachmentHashValue)
                .getReturnValue()
                .toBlocking()
                .first();
