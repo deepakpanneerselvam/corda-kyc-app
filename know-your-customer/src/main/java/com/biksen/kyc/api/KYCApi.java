@@ -23,11 +23,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import kotlin.Pair;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.crypto.Party;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.messaging.CordaRPCOps;
+import net.corda.core.node.services.Vault.Update;
 
 import com.biksen.kyc.contract.KYCContract;
 import com.biksen.kyc.contract.KYCState;
@@ -168,6 +170,19 @@ public class KYCApi {
    @PUT
    @Path("{otherParty}/create-kyc-with-attachment")
    public Response createKYCWithAttachment(KYC kyc, @PathParam("otherParty") String otherPartyName) throws InterruptedException, ExecutionException {
+	   
+	   /** Get vault update status - tracker */
+	   Pair<List<StateAndRef<ContractState>>, rx.Observable<Update>> tr =services.vaultAndUpdates();
+	   rx.Observable<Update> status1 = tr.component2();
+	   status1.subscribe(s -> System.out.println(s));
+	   /*status1.just("Hello Jiya, world!")
+	   .map(s -> s + " -Dan")
+	   .map(s -> s.hashCode())
+	   .map(i -> Integer.toString(i))
+	   //.subscribe(testSubscriber);
+	   .subscribe(s -> System.out.println(s)); // -*/
+	   /** End tracker */
+	   
        final Party otherParty = services.partyFromName(otherPartyName);      
        
        System.out.println("Party1............"+otherParty);       
