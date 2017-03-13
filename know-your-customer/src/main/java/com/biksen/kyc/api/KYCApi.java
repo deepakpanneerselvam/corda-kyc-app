@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -184,22 +185,32 @@ public class KYCApi {
                new KYCContract());
        
       /** Add attachment - Added attachment logic into KYCFlow.java */
-      //String path = Thread.currentThread().getContextClassLoader().getResource(".").getPath()+ "R-3083" + ".zip";     
+       /** Read file directly from src/main/resources location */
+       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("R-3083.zip");       
+              
+       String filePath = new File("").getAbsolutePath() + File.separator + kyc.getUserId() +"_kyc.zip";       
       
-      //System.out.println("Resource path........"+path);
-      /*try{
+       System.out.println("Jiys's filePath......"+ filePath);
+       InputStream in = null;
+       try{
     	   byte[] bytes = "Hello, World!".getBytes("UTF-8");
     	   String encoded = Base64.getEncoder().encodeToString(bytes);
     	   byte[] decoded = Base64.getDecoder().decode(encoded);   	       	   
-    	   FileOutputStream fop = new FileOutputStream(path);
+    	   FileOutputStream fop = new FileOutputStream(filePath);
 
     	   fop.write(decoded);
     	   fop.flush();
     	   fop.close();
-       }catch(Exception e){} 
-       */     
-       //InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-       InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("R-3083.zip");
+    	  
+           URL newFileURL = new File(filePath).toURI().toURL();
+           //java.io.BufferedInputStream will be created by openStream()
+           in = newFileURL.openStream();
+           
+       }catch(Exception e){
+    	   e.printStackTrace();
+       }
+       
+       System.out.println("File input stream created....."+in);    
        
        SecureHash attachmentHashValue =  services.uploadAttachment(in);       
        /** End attachment */
