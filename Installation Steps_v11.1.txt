@@ -1,0 +1,46 @@
+https://vimeo.com/217462250
+
+Windows-7
+---------
+1. Download latest version of Java
+2. Download IntelliJ IDEA (community edition)
+3. Download Git for Windows
+4. Clone Cordapp tutorial and Checkout latest version release-M11
+5. Open IntelliJ IDEA, open Cordapp tutorial.
+6. Point latest JDK by, File ---> Project Structure ----> Browse your JDK location
+7. Click "Import Gradle Project" link at the bottom right corner.
+
+
+##########################################################################
+## Ubuntu 16.04 (4GB RAM, 16GB HDD)
+## Zero-installation with the Gradle Wrapper(only JDK8[jdk1.8.0_131] and Git is required)
+## Optional::You need gradle installation if you want to generate gradle wrapper by yourself.
+##########################################################################
+
+$ sudo add-apt-repository ppa:webupd8team/java
+$ sudo apt-get update
+$ sudo apt-get install oracle-java8-installer
+$ java -version
+$ sudo apt-get install git
+$ git --version
+## clone master first
+$ git clone https://github.com/corda/cordapp-tutorial.git
+$ cd cordapp-tutorial
+## now change release version as per your choice
+$ git checkout -b biksen-corda-tutorial tags/release-M11.1
+OR
+$ git checkout release-M11.1
+## Build the app
+$ ./gradlew clean build deployNodes
+OR
+$ ./gradlew deployNodes
+## Running the app
+$ cd kotlin-source/build/nodes
+OR
+$ cd java-source/build/nodes
+$ ./runnodes --log-to-console --logging-level=DEBUG
+
+## Open web browser
+localhost:10007/web/example
+
+
